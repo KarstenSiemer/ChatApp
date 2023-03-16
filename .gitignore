@@ -1,0 +1,22 @@
+.DS_Store
+node_modules
+/build
+/.svelte-kit
+/package
+.env
+.env.*
+!.env.example
+
+pocketbase
+
+########################################################################################################
+# IntelliJ Idea
+.idea
+
+########################################################################################################
+# VS Code
+.vscode/*
+# Local History for Visual Studio Code
+.history/
+# Built Visual Studio Code Extensions
+*.vsix
