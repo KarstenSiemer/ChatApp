@@ -2,23 +2,25 @@
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
 
-See https://www.youtube.com/watch?v=doDKaKDvB30 for a video walkthrough of this template.
-    * https://github.com/huntabyte/sveltekit-pocketbase-auth/tree/final
+See https://www.youtube.com/watch?v=doDKaKDvB30 for a video walkthrough of this template. \* https://github.com/huntabyte/sveltekit-pocketbase-auth/tree/final
 
-See https://www.youtube.com/watch?v=gUYBFDPZ5qk for next steps
-    * https://github.com/fireship-io/pocketchat-tutorial/tree/main/src
+See https://www.youtube.com/watch?v=gUYBFDPZ5qk for next steps \* https://github.com/fireship-io/pocketchat-tutorial/tree/main/src
+
 ## Setup
 
 ```bash
 # setup database
 mkdir pocketbase
 cd pocketbase
-wget "https://github.com/pocketbase/pocketbase/releases/download/v0.7.9/pocketbase_0.7.9_darwin_amd64.zip"
-unzip pocketbase_0.7.9_darwin_amd64.zip
-./pocketbase serve
+wget "https://github.com/pocketbase/pocketbase/releases/download/v0.13.4/pocketbase_0.13.4_darwin_amd64.zip"
+unzip pocketbase_0.13.4_darwin_amd64.zip
+cd ../
 
 # install deps
 npm install
+
+npm run backend
+npm run dev
 ```
 
 ## Developing

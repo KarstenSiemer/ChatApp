@@ -1,17 +1,39 @@
+// src/hooks.server.ts
+import Handle from '@sveltejs/kit';
 import PocketBase from 'pocketbase';
+import { POCKETBASE_URL } from '$env/static/private';
+import { serializeNonPOJOs } from '$lib/utils';
 
 export const handle = async ({ event, resolve }) => {
-	event.locals.pb = new PocketBase('http://127.0.0.1:8090');
+	// Create a new PocketBase instance
+	event.locals.pb = new PocketBase(POCKETBASE_URL);
+
+	// Load the authStore from the cookie
 	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
 
-	if (event.locals.pb.authStore.isValid) {
-		event.locals.user = event.locals.pb.authStore.model;
+	try {
+		// Check if the user is authenticated
+		if (event.locals.pb.authStore.isValid) {
+			// Refresh the user's authentication
+			await event.locals.pb.collection('users').authRefresh();
+
+			// Set the user in the locals object
+			event.locals.user = structuredClone(event.locals.pb.authStore.model);
+		}
+	} catch (err) {
+		// Clear the authStore if there is an error
+		event.locals.pb.authStore.clear();
 	}
 
+	// Resolve the request
 	const response = await resolve(event);
 
-	// TODO: secure before deployment
-	response.headers.set('set-cookie', event.locals.pb.authStore.exportToCookie({ secure: false }));
+	// Set the cookie
+	const isProd = process.env.NODE_ENV === 'production';
+	response.headers.set(
+		'set-cookie',
+		event.locals.pb.authStore.exportToCookie({ secure: isProd, sameSite: 'Lax' })
+	);
 
 	return response;
 };

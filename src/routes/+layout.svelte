@@ -1,7 +1,6 @@
 <script>
 	import '../app.postcss';
 	import DiCode from 'svelte-icons/di/DiCode.svelte';
-
 	export let data;
 </script>
 
@@ -28,7 +27,7 @@
 					<ul
 						class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
 					>
-						{#if data?.profile}
+						{#if data?.user}
 							<li>
 								<form action="/logout" method="POST">
 									<button>Logout</button>
@@ -48,7 +47,7 @@
 				</a>
 			</div>
 			<div class="navbar-end space-x-2">
-				{#if data?.profile}
+				{#if data?.user}
 					<form action="/logout" method="POST">
 						<button class="btn btn-primary">Logout</button>
 					</form>
