@@ -1,8 +1,5 @@
-// src/hooks.server.ts
-import Handle from '@sveltejs/kit';
 import PocketBase from 'pocketbase';
 import { POCKETBASE_URL } from '$env/static/private';
-import { serializeNonPOJOs } from '$lib/utils';
 
 export const handle = async ({ event, resolve }) => {
 	// Create a new PocketBase instance
