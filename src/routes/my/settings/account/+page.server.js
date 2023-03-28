@@ -9,26 +9,6 @@ export const load = ({ locals }) => {
 };
 
 export const actions = {
-	updateEmail: async ({ request, locals }) => {
-		const { formData, errors } = await validateData(await request.formData(), updateEmailSchema);
-
-		if (errors) {
-			return invalid(400, {
-				data: formData,
-				errors: errors.fieldErrors
-			});
-		}
-
-		try {
-			await locals.pb.collection('users').requestEmailChange(formData.email);
-		} catch (err) {
-			throw error(err.status, err.message);
-		}
-
-		return {
-			success: true
-		};
-	},
 	updateUsername: async ({ request, locals }) => {
 		const { formData, errors } = await validateData(await request.formData(), updateUsernameSchema);
 
