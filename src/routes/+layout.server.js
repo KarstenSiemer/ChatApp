@@ -1,14 +1,11 @@
 export const load = ({ locals }) => {
-	const user = locals.user;
-	if (user) {
+	if (locals.user) {
 		return {
-			user,
-			isLoggedIn: true
+			user: locals.user
 		};
 	}
 
 	return {
-		user: undefined,
-		isLoggedIn: false
+		user: undefined
 	};
 };

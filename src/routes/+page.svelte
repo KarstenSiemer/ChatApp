@@ -1,7 +1,10 @@
 <script>
+	//import { ProjectCard } from '$lib/components';
 	export let data;
 </script>
 
-<h1 class="text-3xl font-bold">
-	Welcome to the SvelteKit & PocketBase Project, {data?.user?.name || 'undefined' }! 👋
-</h1>
+<div class="flex flex-col gap-3">
+	<h1 class="text-xl font-bold">Chats</h1>
+	<div class="grid grid-cols-3 gap-2">
+	</div>
+</div>

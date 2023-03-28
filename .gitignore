@@ -7,7 +7,7 @@ node_modules
 .env.*
 !.env.example
 
-pocketbase
+pocketbase/pocketbase
 
 ########################################################################################################
 # IntelliJ Idea

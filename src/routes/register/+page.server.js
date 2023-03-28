@@ -1,27 +1,26 @@
-import { redirect } from '@sveltejs/kit';
-
-export const load = ({ locals }) => {
-	if (locals.pb.authStore.isValid) {
-		throw redirect(303, '/');
-	}
-};
+import { error, invalid, redirect } from '@sveltejs/kit';
+import { registerUserSchema } from '$lib/schemas';
+import { generateUsername, validateData } from '$lib/utils';
 
 export const actions = {
 	register: async ({ locals, request }) => {
-		const formData = await request.formData();
-		const data = Object.fromEntries([...formData]);
+		const { formData, errors } = await validateData(await request.formData(), registerUserSchema);
+
+		if (errors) {
+			return invalid(400, {
+				data: formData,
+				errors: errors.fieldErrors
+			});
+		}
+
+		let username = generateUsername(formData.name.split(' ').join('')).toLowerCase();
 
 		try {
-			//const newUser = await locals.pb.users.create(data);
-			const newUser = await locals.pb.collection('users').create(data);
-			console.log('New User:', newUser);
+			await locals.pb.collection('users').create({ username, ...formData });
 			locals.pb.authStore.clear();
 		} catch (err) {
-			console.log('Error:', err);
-			return {
-				error: true,
-				message: err
-			};
+			console.log('Error: ', err);
+			throw error(500, 'Something went wrong');
 		}
 
 		throw redirect(303, '/login');
