@@ -14,14 +14,32 @@
 				>
 					<MdChat />
 				</a>
-				<a class="btn btn-ghost normal-case text-xl">ChatApp</a>
+				<p class="px-8 font-semibold normal-case text-2xl">ChatApp</p>
 
 			</div>
 			<div class="navbar-end space-x-2">
 				{#if data?.isLoggedIn}
-					<form action="/logout" method="POST">
-						<button class="btn btn-primary">Logout</button>
-					</form>
+					<p class="px-2 normal-case text-2xl">{data?.user?.name || 'undefined' }</p>
+					<div class="dropdown dropdown-end pr-2">
+						<label tabindex="0" class="btn btn-ghost btn-circle avatar">
+							<div class="w-10 rounded-full">
+								<img src="https://picsum.photos/80/80" alt="Profile"/>
+							</div>
+						</label>
+						<ul tabindex="0" class="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+							<li>
+								<a class="justify-between" href="/">
+									Profile
+								</a>
+							</li>
+							<li><a href="/">Settings</a></li>
+							<li>
+								<form action="/logout" method="POST">
+									<button type="submit">Logout</button>
+								</form>
+							</li>
+						</ul>
+					</div>
 				{:else}
 					<a href="/login" class="btn btn-outline">Login</a>
 					<a href="/register" class="btn btn-primary btn-outline">Register</a>
