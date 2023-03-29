@@ -28,6 +28,9 @@
 				<div class="dropdown dropdown-end mr-4">
 					<a href="/" class="btn btn-primary btn-outline">Search Users</a>
 				</div>
+				<div class="dropdown dropdown-end mr-4">
+					<p class="px-2 normal-case text-2xl">{data?.user?.name || 'undefined' }</p>
+				</div>
 				<div class="dropdown dropdown-end">
 					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
 					<!-- svelte-ignore a11y-label-has-associated-control -->
@@ -57,8 +60,8 @@
 			{/if}
 		</div>
 	</nav>
-	<div class="py-4">
-		<div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+	<div class="py-4 px-4">
+		<div class="mx-auto sm:px-6 lg:px-8">
 			<slot />
 		</div>
 	</div>
