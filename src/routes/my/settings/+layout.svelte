@@ -26,7 +26,7 @@
 			<li>
 				<a
 					href={navItem.href}
-					class="font-medium {$page.url.pathname === navItem.href ? 'active' : ''}"
+					class="font-normal {$page.url.pathname === navItem.href ? 'active' : ''}"
 					>{navItem.title}</a
 				>
 			</li>

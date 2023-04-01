@@ -7,6 +7,7 @@ export const loginUserSchema = z.object({
 	password: z.string({ required_error: 'Password is required' })
 });
 
+
 const imageTypes = [
 	'image/jpeg',
 	'image/jpg',
