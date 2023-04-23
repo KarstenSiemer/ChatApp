@@ -24,4 +24,9 @@ You can preview the production build with `npm run preview`.
 
 ## Links
 
-https://dev.to/karanpratapsingh/system-design-whatsapp-fld
+- [SvelteKit](https://kit.svelte.dev/)
+- [PocketBase](https://pocketbase.io/)
+- [Tailwind CSS](https://tailwindcss.com/docs/)
+- [DaisyUI Components](https://daisyui.com/components/)
+- [DB Schema](https://dev.to/karanpratapsingh/system-design-whatsapp-fld)
+- [Tailwind Play](https://play.tailwindcss.com/)

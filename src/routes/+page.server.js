@@ -1,57 +1,93 @@
-import { error } from "@sveltejs/kit";
+import eventsource from 'eventsource';
+//import { groupsStore, chatsStore, messagesStore } from '$lib/stores.js';
+global.EventSource = eventsource;
+export const load = async ({locals}) => {
+	// Check if user is authenticated
+	if (!locals.pb.authStore.isValid) {
+		return;
+	}
 
-export const load = ({ locals }) => {
-	const groups = [
-		{
-			name: 'Human Resources',
-			id: '100',
-			messageID: '400'
-		},
-		{
-			name: 'DevOps',
-			id: '101',
-			messageID: '401'
-		},
-		{
-			name: 'Frontend',
-			id: '102',
-			messageID: '402'
-		}
-	];
-
-	const chats = [
-		{
-			id: '300',
-			with: 'Ben Dover'
-		},
-		{
-			id: '301',
-			with: 'Hugh Jass'
-		},
-		{
-			id: '302',
-			with: 'Mike Litoris'
-		},
-	];
-
-	const messages = [
-		{
-			id: '400',
-			text: 'Damn, I need to get a new job.'
-		},
-		{
-			id: '401',
-			text: 'I\'m so tired of working from home.'
-		},
-		{
-			id: '402',
-			text: 'I think I\'m going to quit.'
-		}
-	];
+	// Get groups
+	const groups = await fetchGroups(locals.pb, locals.user);
+	const chats = await fetchChats(locals.pb, locals.user);
+	const messages = await fetchMessages(locals.pb, locals.user, groups.map(g => g.id), chats.map(c => c.id));
 
 	return {
 		groups,
 		chats,
 		messages
 	}
+};
+
+const fetchGroups = async (pb, user) => {
+	let groups = [];
+	const groupsResultList = await pb.collection('groups').getFullList({
+		sort: '-created',
+		filter: `users ~ "${user.id}"`
+	});
+
+	//groups = groupsResultList.items;
+	groups = structuredClone(groupsResultList);
+
+
+	pb.collection('groups').subscribe('*', function (e) {
+		groups = [...groups, e.record];
+	});
+
+	pb.collection('groups').subscribe('*', async ({ action, record }) => {
+		if (action === 'create') {
+			groups = [...groups, record];
+		}
+		if (action === 'delete') {
+			groups = groups.filter((m) => m.id !== record.id);
+		}
+	});
+	return groups;
+};
+
+const fetchChats = async (pb, user) => {
+	let chats = [];
+	const chatsResultList = await pb.collection('chats').getFullList({
+		sort: '-created',
+		expand: 'users',
+		filter: `users ~ "${user.id}"`
+	});
+
+	chats = structuredClone(chatsResultList);
+
+	pb.collection('chats').subscribe('*', async ({ action, record }) => {
+		if (action === 'create') {
+			const user = await pb.collection('users').getOne(record.user);
+			record.expand = {user};
+			chats = [...chats, record];
+		}
+		if (action === 'delete') {
+			chats = chats.filter((m) => m.id !== record.id);
+		}
+	});
+	return chats;
+};
+
+const fetchMessages = async (pb, user, groupIds, chatsIds) => {
+	let messages = [];
+	let filterGroups = groupIds.map((id) => `groupID="${id}"`);
+	let filterChats = chatsIds.map((id) => `chatID="${id}"`);
+	let filter = filterGroups.concat(filterChats).join(' || ');
+	const messagesResultList = await pb.collection('messages').getFullList({
+		sort: 'created',
+		expand: 'user',
+		filter: filter
+	});
+	messages = structuredClone(messagesResultList);
+	pb.collection('messages').subscribe('*', async ({ action, record }) => {
+		if (action === 'create') {
+			const user = await pb.collection('users').getOne(record.user);
+			record.expand = {user};
+			messages = [...messages, record];
+		}
+		if (action === 'delete') {
+			messages = messages.filter((m) => m.id !== record.id);
+		}
+	});
+	return messages;
 };

@@ -7,6 +7,7 @@ export const loginUserSchema = z.object({
 	password: z.string({ required_error: 'Password is required' })
 });
 
+
 const imageTypes = [
 	'image/jpeg',
 	'image/jpg',
@@ -66,6 +67,9 @@ export const updateProfileSchema = z.object({
 		.string({ required_error: 'Name is required' })
 		.min(1, { message: 'Name is required' })
 		.max(64, { message: 'Name must be 64 characters or less' })
+		.trim(),
+	status: z
+		.string({ })
 		.trim(),
 	avatar: z
 		.instanceof(Blob)
