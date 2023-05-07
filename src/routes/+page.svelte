@@ -7,14 +7,17 @@
 	import { pb } from '$lib/pocketbase'
 
 	export let data;
+	export let searchToken;
 	let active = undefined;
 	let active_type = "";
 	let max_w_lg = false;
 
 	$: groups = data.groups;
 	$: chats = data.chats;
+	$: users = data.users
 	$: messages = data.messages?.filter(function (el) {
 		return el.groupID === active || el.chatID === active
+		// eslint-disable-next-line no-unreachable
 		return false;
 	});
 	function makeActive(id, type) {
@@ -130,6 +133,13 @@
 					</button>
 				</li>
 				{/each}
+				<li class="menu-title">
+					<span>Users (DEV)</span>
+				</li>
+				{#each users as user (user.id)}
+					<li><button class="font-normal rounded-box hover:shadow-md" id="{user.id}">{user.name}</button></li>
+				{/each}
+				<li><button class="font-normal rounded-box hover:shadow-md">{searchToken}</button></li>
 			</ul>
 		</div>
 		<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">

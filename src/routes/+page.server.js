@@ -16,12 +16,25 @@ export const load = async ({locals}) => {
 	const groups = await fetchGroups(locals.pb, locals.user);
 	const chats = await fetchChats(locals.pb, locals.user);
 	const messages = await fetchMessages(locals.pb, locals.user, groups.map(g => g.id), chats.map(c => c.id));
+	const users = await fetchUsers(locals.pb)
 
 	return {
 		groups,
 		chats,
-		messages
+		messages,
+		users
 	}
+};
+
+const fetchUsers = async (pb) => {
+	let users = [];
+	const usersResultList = await pb.collection('users').getFullList({
+		sort: '-created',
+	});
+
+	users = structuredClone(usersResultList);
+
+	return users;
 };
 
 const fetchGroups = async (pb, user) => {
