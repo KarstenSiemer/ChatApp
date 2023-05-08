@@ -92,3 +92,25 @@ export const updateProfileSchema = z.object({
 			}
 		})
 });
+
+export const sendMessage = z.object({
+	content: z
+		.string({ required_error: 'Message is required' })
+		.min(1, { message: 'Message is required' })
+		.max(512, { message: 'Message must be 512 characters or less' })
+		.trim(),
+	user: z
+		.string({ required_error: 'User is required' })
+		.min(1, { message: 'User is required' })
+		.max(16, { message: 'User must be 512 characters or less' })
+		.trim(),
+	groupID: z
+		.string()
+		.max(16, { message: 'groupID must be 512 characters or less' })
+		.trim(),
+	chatID: z
+		.string()
+		.max(16, { message: 'chatID must be 512 characters or less' })
+		.trim(),
+});
+

@@ -1,8 +1,12 @@
 <script>
 	import { ChatBubble } from '$lib/components';
+	import {invalidateAll} from "$app/navigation";
+	import {enhance, applyAction} from "$app/forms";
+	import { Input } from '$lib/components';
 	export let data;
 	let active = undefined;
 	let active_type = "";
+	let max_w_lg = false;
 
 	$: groups = data.groups;
 	$: chats = data.chats;
@@ -14,6 +18,40 @@
 		active = id;
 		active_type = type;
 	}
+
+	export let form;
+	let loading;
+
+	$: loading = false;
+	const submitMessage = () => {
+		loading = true;
+		return async ({ result }) => {
+			switch (result.type) {
+				case 'success':
+					await invalidateAll();
+					break;
+				case 'error':
+					break;
+				default:
+					await applyAction(result);
+			}
+			loading = false;
+		};
+	};
+
+	const clearFormFields = (node) => {
+		const clearForm = () => {
+			node.reset();
+		};
+		node.addEventListener('submit', clearForm);
+		return {
+			destroy() {
+				node.removeEventListener('submit', clearForm);
+			}
+		};
+	};
+
+
 </script>
 
 {#if data.user}
@@ -45,7 +83,7 @@
 				<ChatBubble
 					type="{message?.expand?.user?.id === data.user.id ? 'end' : 'start'}"
 					writer="{message?.expand?.user?.name}"
-					sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}";
+					sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}"
 					message="{message.content}"
 					avatar="{message?.expand?.user?.avatar}"
 					collectionId="{message?.expand?.user?.collectionId}"
@@ -54,7 +92,27 @@
 				/>
 			{/each}
 			{#if active}
-			  <input type="text" placeholder="Type here" class="input input-bordered input-primary w-full" />
+				<form
+						action="?/sendMessage"
+						method="POST"
+						class="flex flex-col space-y-2 w-full"
+						enctype="multipart/form-data"
+						use:enhance={submitMessage}
+						use:clearFormFields
+				>
+					<input type="hidden" id="groupID" disabled={loading} name="groupID" value="{active_type === 'group' ? active : ''}" />
+					<input type="hidden" id="chatID" disabled={loading} name="chatID" value="{active_type === 'chat' ? active : ''}" />
+					<input type="hidden" name="user" value="{data.user.id}" />
+					<Input
+							id="content"
+							label=""
+							type="textarea"
+							placeholder="Type here"
+							disabled={loading}
+							errors={form?.errors?.status}
+							max_w_lg={max_w_lg}
+					/>
+				</form>
 			{/if}
 		</div>
 	</div>
