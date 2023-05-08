@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"backend": "./pocketbase/pocketbase serve",
-		"dev": "vite dev",
+		"dev": "vite --debug dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"test": "playwright test",

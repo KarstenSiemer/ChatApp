@@ -16,13 +16,15 @@ export const load = async ({locals}) => {
 	const groups = await fetchGroups(locals.pb, locals.user);
 	const chats = await fetchChats(locals.pb, locals.user);
 	const messages = await fetchMessages(locals.pb, locals.user, groups.map(g => g.id), chats.map(c => c.id));
-	const users = await fetchUsers(locals.pb)
+	const allUsers = await fetchUsers(locals.pb)
+	const allGroups = await fetchAllGroups(locals.pb)
 
 	return {
 		groups,
 		chats,
 		messages,
-		users
+		allUsers,
+		allGroups
 	}
 };
 
@@ -44,6 +46,31 @@ const fetchGroups = async (pb, user) => {
 		filter: `users ~ "${user.id}"`
 	});
 	groups = structuredClone(groupsResultList);
+	return groups;
+};
+
+const fetchAllGroups = async (pb) => {
+	let groups = [];
+	const groupsResultList = await pb.collection('groups').getFullList({
+		sort: '-created',
+	});
+
+	//groups = groupsResultList.items;
+	groups = structuredClone(groupsResultList);
+
+
+	pb.collection('groups').subscribe('*', function (e) {
+		groups = [...groups, e.record];
+	});
+
+	pb.collection('groups').subscribe('*', async ({ action, record }) => {
+		if (action === 'create') {
+			groups = [...groups, record];
+		}
+		if (action === 'delete') {
+			groups = groups.filter((m) => m.id !== record.id);
+		}
+	});
 	return groups;
 };
 

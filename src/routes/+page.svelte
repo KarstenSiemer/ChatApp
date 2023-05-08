@@ -7,18 +7,17 @@
 	import { pb } from '$lib/pocketbase'
 
 	export let data;
-	export let searchToken;
 	let active = undefined;
 	let active_type = "";
 	let max_w_lg = false;
 
 	$: groups = data.groups;
 	$: chats = data.chats;
-	$: users = data.users
+	$: allUsers = data.allUsers
+	$: allGroups = data.allGroups
+
 	$: messages = data.messages?.filter(function (el) {
 		return el.groupID === active || el.chatID === active
-		// eslint-disable-next-line no-unreachable
-		return false;
 	});
 	function makeActive(id, type) {
 		active = id;
@@ -116,58 +115,73 @@
 
 	let searchText = ''
 
+	// eslint-disable-next-line no-unused-vars
 	function handleSearch() {
 		dispatch('search', searchText)
 	}
 
 	function filterUsers(query) {
-		console.log("query is: " + query)
+		let result = []
 		if (!query) {
-			return users
+			return allUsers
 		}
-		return users.filter(user =>
-				user.name.includes(query) || user.email.includes(query)
+		result = allUsers.filter(entity =>
+				entity.name.toLowerCase().includes(query.toLowerCase())
 		)
+
+		return result
+	}
+
+	function filterGroups(query) {
+		let result = []
+		if (!query) {
+			result = allGroups
+		}
+		result = allGroups.filter(entity =>
+				entity.name.toLowerCase().includes(query.toLowerCase())
+		)
+
+		return result
 	}
 </script>
 
 {#if data.user}
+
 	<div class="flex flex-row gap-4 h-full">
 		<div class="basis-1/5 overflow-y-scroll">
 			<input bind:value={searchText} type="text" placeholder="Search" class="input w-full" />
+			<br>
 			<hr>
 			<br>
 			<ul class="menu bg-base-100 w-56 rounded-box">
 				<li class="menu-title">
 					<span>Groups</span>
 				</li>
-				{#each groups as group (group.id)}
+				{#each (searchText && searchText.length>1 ? filterGroups(searchText) : groups) as group (group.id)}
 					<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
 				{/each}
 				<li class="menu-title">
 					<span>Chats</span>
 				</li>
-				{#each chats as chat (chat.id)}
-				<li>
-					<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
-					{chat.expand.users.filter(function (el) {
-						return el.id !== data.user.id
-					})[0].name}
-					</button>
-				</li>
-				{/each}
-				<li class="menu-title">
-					<span>Users (DEV)</span>
-				</li>
-				{#each filterUsers(searchText) as user}
-					<li><button class="font-normal rounded-box hover:shadow-md">{user.id}</button></li>
-				{/each}
-				<li><button class="font-normal rounded-box hover:shadow-md">{searchToken}</button></li>
+				{#if searchText}
+					{#each filterUsers(searchText) as user (user.id)}
+						<li>
+							<button class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name}</button>
+						</li>
+					{/each}
+				{:else }
+					{#each chats as chat (chat.id)}
+						<li>
+							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
+								{chat.expand.users.filter(function (el) {
+									return el.id !== data.user.id
+								})[0].name}
+							</button>
+						</li>
+					{/each}
+				{/if}
 			</ul>
 		</div>
-
-
-
 		<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
 			{#each messages as message (message.id)}
 				<ChatBubble
