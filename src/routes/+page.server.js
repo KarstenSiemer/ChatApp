@@ -1,6 +1,12 @@
 import eventsource from 'eventsource';
 //import { groupsStore, chatsStore, messagesStore } from '$lib/stores.js';
 global.EventSource = eventsource;
+
+import { error, invalid } from '@sveltejs/kit';
+import { sendMessage } from '$lib/schemas';
+import { validateData } from '$lib/utils';
+import { serialize } from 'object-to-formdata';
+
 export const load = async ({locals}) => {
 	// Check if user is authenticated
 	if (!locals.pb.authStore.isValid) {
@@ -90,4 +96,33 @@ const fetchMessages = async (pb, user, groupIds, chatsIds) => {
 		}
 	});
 	return messages;
+};
+
+export const actions = {
+	sendMessage: async ({ request, locals }) => {
+		const body = await request.formData();
+
+		const { formData, errors } = await validateData(body, sendMessage);
+
+		if (errors) {
+			return invalid(400, {
+				data: formData,
+				errors: errors.fieldErrors
+			});
+		}
+		console.log('formData', serialize(formData));
+
+		try {
+			await locals.pb
+				.collection('messages')
+				.create(serialize(formData));
+		} catch (err) {
+			console.log('Error: ', err);
+
+			throw error(400, 'Something went wrong updating your profile');
+		}
+		return {
+			success: true
+		};
+	}
 };

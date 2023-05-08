@@ -6,22 +6,26 @@
 	export let type = 'text';
 	export let disabled = false;
 	export let required = false;
-
+	export let hidden = false;
 	export let errors;
+	export let max_w_lg = true;
 </script>
 
-<div class="form-control w-full max-w-lg mb-2">
-	<label for={id} class="label font-medium pb-1">
-		<span class="label-text">{label}</span>
-	</label>
+<div class="form-control w-full { max_w_lg ? 'max-w-lg' : '' } mb-2">
+	{#if label}
+		<label for={id} class="label font-medium pb-1">
+			<span class="label-text">{label}</span>
+		</label>
+	{/if}
 	<input
-		class={type === 'file'
-			? 'file-input file-input-bordered w-full max-w-lg'
-			: 'input input-bordered w-full max-w-lg'}
+		class={type === "file"
+			? "file-input file-input-bordered w-full"
+			: "input input-bordered w-full"}
 		{type}
 		{placeholder}
 		{required}
 		{disabled}
+		{hidden}
 		{id}
 		name={id}
 		{value}
