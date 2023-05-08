@@ -4,7 +4,6 @@
 	import { getImageURL } from '$lib/utils';
 	import MdChat from 'svelte-icons/md/MdChat.svelte';
 	export let data;
-	export let searchToken = "";
 </script>
 
 <Toaster />
@@ -25,9 +24,6 @@
 					<a href="/login" class="btn btn-outline">Login</a>
 				</div>
 			{:else}
-				<div class="dropdown dropdown-end mr-4">
-					<input bind:value={searchToken} type="text" placeholder="Search" class="input input-bordered input-primary w-full" />
-				</div>
 				<div class="dropdown dropdown-end mr-4">
 					<p class="px-2 normal-case text-2xl">{data?.user?.name || 'undefined' }</p>
 				</div>

@@ -109,11 +109,34 @@
 		unsubscribeChats?.();
 		unsubscribeGroups?.();
 	});
+
+	import { createEventDispatcher } from 'svelte'
+
+	const dispatch = createEventDispatcher()
+
+	let searchText = ''
+
+	function handleSearch() {
+		dispatch('search', searchText)
+	}
+
+	function filterUsers(query) {
+		console.log("query is: " + query)
+		if (!query) {
+			return users
+		}
+		return users.filter(user =>
+				user.name.includes(query) || user.email.includes(query)
+		)
+	}
 </script>
 
 {#if data.user}
 	<div class="flex flex-row gap-4 h-full">
 		<div class="basis-1/5 overflow-y-scroll">
+			<input bind:value={searchText} type="text" placeholder="Search" class="input w-full" />
+			<hr>
+			<br>
 			<ul class="menu bg-base-100 w-56 rounded-box">
 				<li class="menu-title">
 					<span>Groups</span>
@@ -136,12 +159,15 @@
 				<li class="menu-title">
 					<span>Users (DEV)</span>
 				</li>
-				{#each users as user (user.id)}
-					<li><button class="font-normal rounded-box hover:shadow-md" id="{user.id}">{user.name}</button></li>
+				{#each filterUsers(searchText) as user}
+					<li><button class="font-normal rounded-box hover:shadow-md">{user.id}</button></li>
 				{/each}
 				<li><button class="font-normal rounded-box hover:shadow-md">{searchToken}</button></li>
 			</ul>
 		</div>
+
+
+
 		<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
 			{#each messages as message (message.id)}
 				<ChatBubble
