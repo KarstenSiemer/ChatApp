@@ -1,17 +1,15 @@
 <script>
 	import { ChatBubble } from '$lib/components';
-<<<<<<< Updated upstream
-=======
 	import {invalidateAll} from "$app/navigation";
 	import {enhance, applyAction} from "$app/forms";
 	import { Input } from '$lib/components';
 	import { onMount, onDestroy } from 'svelte';
-	import PocketBase from 'pocketbase';
+	import { pb } from '$lib/pocketbase'
 
->>>>>>> Stashed changes
 	export let data;
 	let active = undefined;
 	let active_type = "";
+	let max_w_lg = false;
 
 	$: groups = data.groups;
 	$: chats = data.chats;
@@ -23,8 +21,6 @@
 		active = id;
 		active_type = type;
 	}
-<<<<<<< Updated upstream
-=======
 
 	export let form;
 	let loading;
@@ -62,15 +58,15 @@
 	let unsubscribeChats;
 	let unsubscribeGroups;
 
-	export const pb = new PocketBase('http://127.0.0.1:8090');
-
 	onMount(async () => {
 		// Subscribe to realtime messages
 		unsubscribeMessages = await pb.collection('messages').subscribe('*', async ({ action, record }) => {
 			if (action === 'create') {
 				const user = await pb.collection('users').getOne(record.user);
 				record.expand = {user};
-				messages = [...messages, record];
+				if ( groups.some(group => group.id === record.groupID) || chats.some(chat => chat.id === record.chatID) ) {
+					messages = [...messages, record];
+				}
 			}
 			if (action === 'delete') {
 				messages = messages.filter((m) => m.id !== record.id);
@@ -78,8 +74,12 @@
 		});
 		unsubscribeChats = await pb.collection('chats').subscribe('*', async ({ action, record }) => {
 			if (action === 'create') {
-				const user = await pb.collection('users').getOne(record.user);
-				record.expand = {user};
+				let filter = record.users.map((id) => `id="${id}"`).join(' || ');
+				const users = await pb.collection('users').getFullList({
+					sort: '-created',
+					filter: filter
+				});
+				record.expand = {users};
 				chats = [...chats, record];
 			}
 			if (action === 'delete') {
@@ -87,8 +87,12 @@
 			}
 		});
 		unsubscribeGroups = await pb.collection('groups').subscribe('*', async ({ action, record }) => {
-			if (action === 'create') {
-				groups = [...groups, record];
+			if (action === 'update') {
+				if ( record.users.includes(data.user.id) ) {
+					groups = [...groups, record];
+				} else {
+					groups = groups.filter((m) => m.id !== record.id);
+				}
 			}
 			if (action === 'delete') {
 				groups = groups.filter((m) => m.id !== record.id);
@@ -102,8 +106,6 @@
 		unsubscribeChats?.();
 		unsubscribeGroups?.();
 	});
-
->>>>>>> Stashed changes
 </script>
 
 {#if data.user}
@@ -135,7 +137,7 @@
 				<ChatBubble
 					type="{message?.expand?.user?.id === data.user.id ? 'end' : 'start'}"
 					writer="{message?.expand?.user?.name}"
-					sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}";
+					sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}"
 					message="{message.content}"
 					avatar="{message?.expand?.user?.avatar}"
 					collectionId="{message?.expand?.user?.collectionId}"
@@ -144,7 +146,27 @@
 				/>
 			{/each}
 			{#if active}
-			  <input type="text" placeholder="Type here" class="input input-bordered input-primary w-full" />
+				<form
+						action="?/sendMessage"
+						method="POST"
+						class="flex flex-col space-y-2 w-full"
+						enctype="multipart/form-data"
+						use:enhance={submitMessage}
+						use:clearFormFields
+				>
+					<input type="hidden" id="groupID" disabled={loading} name="groupID" value="{active_type === 'group' ? active : ''}" />
+					<input type="hidden" id="chatID" disabled={loading} name="chatID" value="{active_type === 'chat' ? active : ''}" />
+					<input type="hidden" name="user" value="{data.user.id}" />
+					<Input
+							id="content"
+							label=""
+							type="textarea"
+							placeholder="Type here"
+							disabled={loading}
+							errors={form?.errors?.status}
+							max_w_lg={max_w_lg}
+					/>
+				</form>
 			{/if}
 		</div>
 	</div>
