@@ -16,6 +16,8 @@
 	$: allUsers = data.allUsers
 	$: allGroups = data.allGroups
 
+	$: console.log(allUsers.map(input => input.name))
+
 	$: messages = data.messages?.filter(function (el) {
 		return el.groupID === active || el.chatID === active
 	});
@@ -132,6 +134,26 @@
 		return result
 	}
 
+	function retrieveConversationTitle(id) {
+		console.log("looking up id: " + id)
+		let groupResult = groups.filter(group => group.id===id)[0];
+		let chatResult = chats.filter(chat => chat.id===id)[0];
+
+		if (groupResult) {
+			console.log("found group with name: " + groupResult.name)
+			return groupResult.name
+		} else if (chatResult) {
+			console.log("current user is: " + data.user.id + " / " + data.user.name)
+			console.log("found username: " + chatResult.users.filter(user => user !== data.user.id))
+			let userId = chatResult.users.filter(user => user !== data.user.id)[0]
+			let user = allUsers.filter(user => user.id === userId) [0]
+			console.log("returning " + user.id)
+			return user.name
+		} else {
+			console.log("wtf")
+		}
+	}
+
 	function filterGroups(query) {
 		let result = []
 		if (!query) {
@@ -140,6 +162,8 @@
 		result = allGroups.filter(entity =>
 				entity.name.toLowerCase().includes(query.toLowerCase())
 		)
+
+
 
 		return result
 	}
@@ -183,6 +207,16 @@
 			</ul>
 		</div>
 		<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
+			<div class="dropdown dropdown-end mr-4">
+				{#if active && active_type === 'chat'}
+<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
+					<p class="px-2 normal-case text-2xl">{retrieveConversationTitle(active)}</p>
+				{:else if active && active_type === 'group'}
+					<p class="px-2 normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].id }</p>
+				{:else}
+					<p class="px-2 normal-case text-2xl">Select a Chat or create a new one.</p>
+				{/if}
+			</div>
 			{#each messages as message (message.id)}
 				<ChatBubble
 					type="{message?.expand?.user?.id === data.user.id ? 'end' : 'start'}"
