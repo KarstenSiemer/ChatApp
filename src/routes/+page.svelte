@@ -151,8 +151,9 @@
 			}
 		}
 		console.log("activating " + type + ": " + id)
-		makeActive(id, type)
 		searchText = ''
+		await new Promise(r => setTimeout(r, 10));
+		makeActive(id, type)
 	}
 
 	// Unsubscribe from realtime messages
