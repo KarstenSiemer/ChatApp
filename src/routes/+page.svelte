@@ -215,7 +215,7 @@
 						<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
 						<p class="normal-case text-2xl">{retrieveConversationTitle(active)}</p>
 					{:else if active && active_type === 'group'}
-						<p class="normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].name }</p>
+						<p class="normal-case text-2xl">{retrieveConversationTitle(active)}</p>
 					{:else}
 						<p class="normal-case text-2xl">Select a Chat or create a new one.</p>
 					{/if}
