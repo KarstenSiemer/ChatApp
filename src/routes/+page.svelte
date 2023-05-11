@@ -104,22 +104,54 @@
 		});
 	});
 
-	function addChatReferenceIfNotExiting(id, type) {
+	async function addChatReferenceIfNotExiting(id, type) {
 		console.log("adding chat reference if not exiting: " + id + " " + type)
 		if (type === 'group') {
 			console.log(groups.map(group => group.id))
-			if (groups.map(group => group.id).includes(id)){
-				console.log("activating group: " + id)
-				makeActive(id, type)
-			}
-		} if (type === 'user') {
-			let chat = chats.filter(chat => chat.users.includes(id))[0]
-			console.log("result for chat with user " + id + ": " + chat)
-			if (chat) {
-				console.log("activating chat: " + chat.id)
-				makeActive(chat.id, 'chat')
+			if (!groups.map(group => group.id).includes(id)) {
+				console.log("joining group")
+				pb.collection('groups').getOne(id)
+						.then((document) => {
+							const currentList = document.users || []; // if the field does not exist, initialize an empty array
+							const newList = [...currentList, data.user.id]; // add the new element to the current list
+							pb.collection('groups').update(id, {
+								users: newList
+							}).then((result) => {
+								console.log('List field updated:', result);
+							}).catch((error) => {
+								console.error('Error updating list field:', error);
+							});
+						}).catch((error) => {
+					console.error('Error getting document:', error);
+				});
 			}
 		}
+		if (type === 'chat') {
+			let chat = chats.filter(chat => chat.users.includes(id))[0]
+			console.log("result for chat with user " + id + ": " + chat)
+			if (!chat) {
+				console.log("initiating chat with user: " + id)
+
+				const newDocument = {
+					"users": [
+						id,
+						data.user.id
+					]
+				};
+
+				await pb.collection('chats').create(newDocument)
+						.then( (result) => {
+							console.log('New document created:', result);
+							id = result.id
+							 pb.collection('chats').getOne(result.id)
+						}).catch((error) => {
+							console.error('Error creating new document:', error);
+						});
+
+			}
+		}
+		console.log("activating " + type + ": " + id)
+		makeActive(id, type)
 		searchText = ''
 	}
 
@@ -195,7 +227,7 @@
 				{/each}
 				{#each filterUsers(searchText) as user (user.id)}
 					<li>
-						<button on:click="{addChatReferenceIfNotExiting(user.id, 'user')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
+						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
 				{#if searchText}
