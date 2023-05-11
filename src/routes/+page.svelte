@@ -228,7 +228,19 @@
 				{/each}
 				{#each filterUsers(searchText) as user (user.id)}
 					<li>
-						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}"><div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;"><img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{user.id}/{user.avatar}" alt="User avatar" style="width: 100%; height: auto;"></div>{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
+						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">
+							<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+								{#if user.avatar}
+									<img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{user.id}/{user.avatar}"
+										 alt="User avatar"
+										 style="width: 100%; height: auto;">
+								{:else}
+									<img src="https://cdn-icons-png.flaticon.com/512/47/47774.png"
+										 alt="User avatar"
+										 style="width: 100%; height: auto;">
+								{/if}
+
+							</div>{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
 				{#if searchText}
@@ -253,7 +265,18 @@
 					{#each chats as chat (chat.id)}
 						<li>
 							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
-								<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{retrieveConversationPartner(chat.id).id}/{retrieveConversationPartner(chat.id).avatar}" alt="User avatar" style="width: 100%; height: auto;"></div>
+								<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+									{#if retrieveConversationPartner(chat.id).avatar}
+										<img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{retrieveConversationPartner(chat.id).id}/{retrieveConversationPartner(chat.id).avatar}"
+											 alt="User avatar"
+											 style="width: 100%; height: auto;">
+									{:else}
+										<img src="https://cdn-icons-png.flaticon.com/512/47/47774.png"
+											 alt="User avatar"
+											 style="width: 100%; height: auto;">
+									{/if}
+
+								</div>
 								{chat.expand.users.filter(function (el) {
 									return el.id !== data.user.id
 								})[0].name}
