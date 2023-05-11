@@ -16,7 +16,7 @@
 	$: allUsers = data.allUsers
 	$: allGroups = data.allGroups
 
-	$: console.log(allUsers.map(input => input.name))
+	$: console.log(allUsers.map(input => input.avatar))
 
 	$: messages = data.messages?.filter(function (el) {
 		return el.groupID === active || el.chatID === active
@@ -224,11 +224,11 @@
 		<div style="position: fixed; z-index: 1">
 			<ul class="menu bg-base-100 rounded-box bg-base-200">
 				{#each filterGroups(searchText) as group (group.id)}
-					<li><button on:click="{addChatReferenceIfNotExiting(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
+					<li><button on:click="{addChatReferenceIfNotExiting(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}"><div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;"></div>{group.name}</button></li>
 				{/each}
 				{#each filterUsers(searchText) as user (user.id)}
 					<li>
-						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
+						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}"><div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;"><img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{user.id}/{user.avatar}" alt="User avatar" style="width: 100%; height: auto;"></div>{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
 				{#if searchText}
@@ -245,7 +245,7 @@
 						<span>Groups</span>
 					</li>
 					{#each groups as group (group.id)}
-						<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
+						<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}"><div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;"></div>{group.name}</button></li>
 					{/each}
 					<li class="menu-title">
 						<span>Chats</span>
@@ -253,6 +253,7 @@
 					{#each chats as chat (chat.id)}
 						<li>
 							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
+								<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{retrieveConversationPartner(chat.id).id}/{retrieveConversationPartner(chat.id).avatar}" alt="User avatar" style="width: 100%; height: auto;"></div>
 								{chat.expand.users.filter(function (el) {
 									return el.id !== data.user.id
 								})[0].name}
