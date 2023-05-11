@@ -104,6 +104,25 @@
 		});
 	});
 
+	function addChatReferenceIfNotExiting(id, type) {
+		console.log("adding chat reference if not exiting: " + id + " " + type)
+		if (type === 'group') {
+			console.log(groups.map(group => group.id))
+			if (groups.map(group => group.id).includes(id)){
+				console.log("activating group: " + id)
+				makeActive(id, type)
+			}
+		} if (type === 'user') {
+			let chat = chats.filter(chat => chat.users.includes(id))[0]
+			console.log("result for chat with user " + id + ": " + chat)
+			if (chat) {
+				console.log("activating chat: " + chat.id)
+				makeActive(chat.id, 'chat')
+			}
+		}
+		searchText = ''
+	}
+
 	// Unsubscribe from realtime messages
 	onDestroy(() => {
 		unsubscribeMessages?.();
@@ -131,21 +150,21 @@
 		)
 	}
 
-	function retrieveConversationTitle(id) {
+	function retrieveConversationPartner(id) {
 		console.log("looking up id: " + id)
 		let groupResult = groups.filter(group => group.id===id)[0];
 		let chatResult = chats.filter(chat => chat.id===id)[0];
 
 		if (groupResult) {
 			console.log("found group with name: " + groupResult.name)
-			return groupResult.name
+			return groupResult
 		} else if (chatResult) {
 			console.log("current user is: " + data.user.id + " / " + data.user.name)
 			console.log("found username: " + chatResult.users.filter(user => user !== data.user.id))
 			let userId = chatResult.users.filter(user => user !== data.user.id)[0]
 			let user = allUsers.filter(user => user.id === userId) [0]
 			console.log("returning " + user.id)
-			return user.name
+			return user
 		} else {
 			console.log("wtf")
 		}
@@ -172,11 +191,11 @@
 		<div style="position: fixed; z-index: 1">
 			<ul class="menu bg-base-100 rounded-box bg-base-200">
 				{#each filterGroups(searchText) as group (group.id)}
-					<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
+					<li><button on:click="{addChatReferenceIfNotExiting(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
 				{/each}
 				{#each filterUsers(searchText) as user (user.id)}
 					<li>
-						<button class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
+						<button on:click="{addChatReferenceIfNotExiting(user.id, 'user')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
 				{#if searchText}
@@ -213,9 +232,9 @@
 				<div class="dropdown dropdown-end mr-4">
 					{#if active && active_type === 'chat'}
 						<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
-						<p class="normal-case text-2xl">{retrieveConversationTitle(active)}</p>
+						<p class="normal-case text-2xl">{retrieveConversationPartner(active).name}</p>
 					{:else if active && active_type === 'group'}
-						<p class="normal-case text-2xl">{retrieveConversationTitle(active)}</p>
+						<p class="normal-case text-2xl">{retrieveConversationPartner(active).name}</p>
 					{:else}
 						<p class="normal-case text-2xl">Select a Chat or create a new one.</p>
 					{/if}
