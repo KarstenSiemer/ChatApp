@@ -123,15 +123,12 @@
 	}
 
 	function filterUsers(query) {
-		let result = []
-		if (!query) {
-			return allUsers
+		if (!query || query === '') {
+			return []
 		}
-		result = allUsers.filter(entity =>
+		return allUsers.filter(entity =>
 				entity.name.toLowerCase().includes(query.toLowerCase())
 		)
-
-		return result
 	}
 
 	function retrieveConversationTitle(id) {
@@ -155,45 +152,52 @@
 	}
 
 	function filterGroups(query) {
-		let result = []
-		if (!query) {
-			result = allGroups
+		if (!query || query === '') {
+			return []
 		}
-		result = allGroups.filter(entity =>
+		return allGroups.filter(entity =>
 				entity.name.toLowerCase().includes(query.toLowerCase())
 		)
-
-
-
-		return result
 	}
 </script>
 
 {#if data.user}
-
-	<div class="flex flex-row gap-4 h-full">
-		<div class="basis-1/5 overflow-y-scroll">
-			<input bind:value={searchText} type="text" placeholder="Search" class="input w-full" />
-			<br>
-			<hr>
-			<br>
-			<ul class="menu bg-base-100 w-56 rounded-box">
-				<li class="menu-title">
-					<span>Groups</span>
-				</li>
-				{#each (searchText && searchText.length>1 ? filterGroups(searchText) : groups) as group (group.id)}
+	<div class="overflow-y-scroll w-full">
+		<input bind:value={searchText} type="text" placeholder="Search" class="input w-full" />
+		<br>
+		<hr>
+		<br>
+	</div>
+	<div class="w-full" style="position: relative; z-index: 0">
+		<div style="position: fixed; z-index: 1">
+			<ul class="menu bg-base-100 rounded-box bg-base-200">
+				{#each filterGroups(searchText) as group (group.id)}
 					<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
 				{/each}
-				<li class="menu-title">
-					<span>Chats</span>
-				</li>
-				{#if searchText}
-					{#each filterUsers(searchText) as user (user.id)}
-						<li>
-							<button class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name}</button>
-						</li>
+				{#each filterUsers(searchText) as user (user.id)}
+					<li>
+						<button class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
+					</li>
+				{/each}
+				{#if filterUsers(searchText).length > 0 || filterGroups(searchText).length > 0}
+					<li>
+						<button disabled="disabled"  class="font-normal rounded-box ">Found {filterUsers(searchText).length} Users and {filterGroups(searchText).length} Groups.</button>
+					</li>
+				{/if}
+			</ul>
+		</div>
+		<div class="flex flex-row gap-4 h-full" style="position: relative; z-index: 0">
+			<div class="basis-1/5 overflow-y-scroll">
+				<ul class="menu bg-base-100 w-56 rounded-box">
+					<li class="menu-title">
+						<span>Groups</span>
+					</li>
+					{#each groups as group (group.id)}
+						<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">{group.name}</button></li>
 					{/each}
-				{:else }
+					<li class="menu-title">
+						<span>Chats</span>
+					</li>
 					{#each chats as chat (chat.id)}
 						<li>
 							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
@@ -203,57 +207,58 @@
 							</button>
 						</li>
 					{/each}
-				{/if}
-			</ul>
-		</div>
-		<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
-			<div class="dropdown dropdown-end mr-4">
-				{#if active && active_type === 'chat'}
-<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
-					<p class="px-2 normal-case text-2xl">{retrieveConversationTitle(active)}</p>
-				{:else if active && active_type === 'group'}
-					<p class="px-2 normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].id }</p>
-				{:else}
-					<p class="px-2 normal-case text-2xl">Select a Chat or create a new one.</p>
+				</ul>
+			</div>
+			<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
+				<div class="dropdown dropdown-end mr-4">
+					{#if active && active_type === 'chat'}
+						<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
+						<p class="px-2 normal-case text-2xl">{retrieveConversationTitle(active)}</p>
+					{:else if active && active_type === 'group'}
+						<p class="px-2 normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].id }</p>
+					{:else}
+						<p class="px-2 normal-case text-2xl">Select a Chat or create a new one.</p>
+					{/if}
+				</div>
+				{#each messages as message (message.id)}
+					<ChatBubble
+							type="{message?.expand?.user?.id === data.user.id ? 'end' : 'start'}"
+							writer="{message?.expand?.user?.name}"
+							sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}"
+							message="{message.content}"
+							avatar="{message?.expand?.user?.avatar}"
+							collectionId="{message?.expand?.user?.collectionId}"
+							userId="{message?.expand?.user?.id}"
+							status="delivered"
+					/>
+				{/each}
+				{#if active}
+					<form
+							action="?/sendMessage"
+							method="POST"
+							class="flex flex-col space-y-2 w-full"
+							enctype="multipart/form-data"
+							use:enhance={submitMessage}
+							use:clearFormFields
+					>
+						<input type="hidden" id="groupID" disabled={loading} name="groupID" value="{active_type === 'group' ? active : ''}" />
+						<input type="hidden" id="chatID" disabled={loading} name="chatID" value="{active_type === 'chat' ? active : ''}" />
+						<input type="hidden" name="user" value="{data.user.id}" />
+						<Input
+								id="content"
+								label=""
+								type="textarea"
+								placeholder="Type here"
+								disabled={loading}
+								errors={form?.errors?.status}
+								max_w_lg={max_w_lg}
+						/>
+					</form>
 				{/if}
 			</div>
-			{#each messages as message (message.id)}
-				<ChatBubble
-					type="{message?.expand?.user?.id === data.user.id ? 'end' : 'start'}"
-					writer="{message?.expand?.user?.name}"
-					sent="{new Date(message.created).toLocaleTimeString('en-US', {hour12:false, hour:'2-digit', minute:'2-digit'})}"
-					message="{message.content}"
-					avatar="{message?.expand?.user?.avatar}"
-					collectionId="{message?.expand?.user?.collectionId}"
-					userId="{message?.expand?.user?.id}"
-					status="delivered"
-				/>
-			{/each}
-			{#if active}
-				<form
-						action="?/sendMessage"
-						method="POST"
-						class="flex flex-col space-y-2 w-full"
-						enctype="multipart/form-data"
-						use:enhance={submitMessage}
-						use:clearFormFields
-				>
-					<input type="hidden" id="groupID" disabled={loading} name="groupID" value="{active_type === 'group' ? active : ''}" />
-					<input type="hidden" id="chatID" disabled={loading} name="chatID" value="{active_type === 'chat' ? active : ''}" />
-					<input type="hidden" name="user" value="{data.user.id}" />
-					<Input
-							id="content"
-							label=""
-							type="textarea"
-							placeholder="Type here"
-							disabled={loading}
-							errors={form?.errors?.status}
-							max_w_lg={max_w_lg}
-					/>
-				</form>
-			{/if}
 		</div>
 	</div>
+
 {:else}
 	<div class="hero flex-grow h-full bg-base-200">
 		<div class="hero-content text-center">
