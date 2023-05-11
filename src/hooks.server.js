@@ -1,18 +1,18 @@
-import PocketBase from 'pocketbase';
+import { pb } from '$lib/pocketbase'
 
 export const handle = async ({ event, resolve }) => {
-	event.locals.pb = new PocketBase('http://127.0.0.1:8090');
-	event.locals.pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '');
+	pb.authStore.loadFromCookie(event.request.headers.get('cookie') || '')
 
-	try {
-		if (event.locals.pb.authStore.isValid) {
-			await event.locals.pb.collection('users').authRefresh();
-			event.locals.user = structuredClone(event.locals.pb.authStore.model);
+	if (pb.authStore.isValid) {
+		try {
+			await pb.collection('users').authRefresh()
+		} catch (_) {
+			pb.authStore.clear()
 		}
-	} catch (_) {
-		event.locals.pb.authStore.clear();
-		event.locals.user = undefined;
 	}
+
+	event.locals.pb = pb
+	event.locals.user = structuredClone(pb.authStore.model)
 
 	const response = await resolve(event);
 

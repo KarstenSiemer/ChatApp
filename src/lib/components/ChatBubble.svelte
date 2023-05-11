@@ -11,23 +11,21 @@
 </script>
 
 
-<div>
-    <div class="chat chat-{type}">
-        <div class="chat-image avatar">
-            <div class="w-10 rounded-full">
-                <img
-                        src={avatar ? getImageURL(collectionId, userId, avatar) : `https://ui-avatars.com/api/?name=${writer}`}
-                        alt="User avatar"
-                />
-            </div>
+<div class="chat chat-{type}">
+    <div class="chat-image avatar">
+        <div class="w-10 rounded-full">
+            <img
+                    src={avatar ? getImageURL(collectionId, userId, avatar) : `https://ui-avatars.com/api/?name=${writer}`}
+                    alt="User avatar of {writer}"
+            />
         </div>
-        <div class="chat-header">
-            {writer}
-            <time class="text-xs opacity-50">{sent}</time>
-        </div>
-        <div class="chat-bubble">{message}</div>
-        <div class="chat-footer opacity-50">
-            {status}
-        </div>
+    </div>
+    <div class="chat-header">
+        {writer}
+        <time class="text-xs opacity-50">{sent}</time>
+    </div>
+    <div class="chat-bubble">{message}</div>
+    <div class="chat-footer opacity-50">
+        {status}
     </div>
 </div>

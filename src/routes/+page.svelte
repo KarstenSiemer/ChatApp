@@ -3,6 +3,9 @@
 	import {invalidateAll} from "$app/navigation";
 	import {enhance, applyAction} from "$app/forms";
 	import { Input } from '$lib/components';
+	import { onMount, onDestroy } from 'svelte';
+	import { pb } from '$lib/pocketbase'
+
 	export let data;
 	let active = undefined;
 	let active_type = "";
@@ -51,7 +54,58 @@
 		};
 	};
 
+	let unsubscribeMessages;
+	let unsubscribeChats;
+	let unsubscribeGroups;
 
+	onMount(async () => {
+		// Subscribe to realtime messages
+		unsubscribeMessages = await pb.collection('messages').subscribe('*', async ({ action, record }) => {
+			if (action === 'create') {
+				const user = await pb.collection('users').getOne(record.user);
+				record.expand = {user};
+				if ( groups.some(group => group.id === record.groupID) || chats.some(chat => chat.id === record.chatID) ) {
+					messages = [...messages, record];
+				}
+			}
+			if (action === 'delete') {
+				messages = messages.filter((m) => m.id !== record.id);
+			}
+		});
+		unsubscribeChats = await pb.collection('chats').subscribe('*', async ({ action, record }) => {
+			if (action === 'create') {
+				let filter = record.users.map((id) => `id="${id}"`).join(' || ');
+				const users = await pb.collection('users').getFullList({
+					sort: '-created',
+					filter: filter
+				});
+				record.expand = {users};
+				chats = [...chats, record];
+			}
+			if (action === 'delete') {
+				chats = chats.filter((m) => m.id !== record.id);
+			}
+		});
+		unsubscribeGroups = await pb.collection('groups').subscribe('*', async ({ action, record }) => {
+			if (action === 'update') {
+				if ( record.users.includes(data.user.id) ) {
+					groups = [...groups, record];
+				} else {
+					groups = groups.filter((m) => m.id !== record.id);
+				}
+			}
+			if (action === 'delete') {
+				groups = groups.filter((m) => m.id !== record.id);
+			}
+		});
+	});
+
+	// Unsubscribe from realtime messages
+	onDestroy(() => {
+		unsubscribeMessages?.();
+		unsubscribeChats?.();
+		unsubscribeGroups?.();
+	});
 </script>
 
 {#if data.user}
