@@ -179,7 +179,7 @@
 						<button class="font-normal rounded-box hover:shadow-md " id="{user.id}">{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
-				{#if filterUsers(searchText).length > 0 || filterGroups(searchText).length > 0}
+				{#if searchText}
 					<li>
 						<button disabled="disabled"  class="font-normal rounded-box ">Found {filterUsers(searchText).length} Users and {filterGroups(searchText).length} Groups.</button>
 					</li>
@@ -213,11 +213,11 @@
 				<div class="dropdown dropdown-end mr-4">
 					{#if active && active_type === 'chat'}
 						<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
-						<p class="px-2 normal-case text-2xl">{retrieveConversationTitle(active)}</p>
+						<p class="normal-case text-2xl">{retrieveConversationTitle(active)}</p>
 					{:else if active && active_type === 'group'}
-						<p class="px-2 normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].id }</p>
+						<p class="normal-case text-2xl">{groups.filter(entity => entity.id === active)[0].name }</p>
 					{:else}
-						<p class="px-2 normal-case text-2xl">Select a Chat or create a new one.</p>
+						<p class="normal-case text-2xl">Select a Chat or create a new one.</p>
 					{/if}
 				</div>
 				{#each messages as message (message.id)}
