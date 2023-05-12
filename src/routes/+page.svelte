@@ -11,6 +11,8 @@
 	let active_type = "";
 	let max_w_lg = false;
 
+	let triggerRendering = 0;
+
 	$: groups = data.groups;
 	$: chats = data.chats;
 	$: allUsers = data.allUsers
@@ -77,7 +79,7 @@
 			}
 		});
 		unsubscribeChats = await pb.collection('chats').subscribe('*', async ({ action, record }) => {
-			if (action === 'create') {
+			if (action === 'create' || action === 'update') {
 				let filter = record.users.map((id) => `id="${id}"`).join(' || ');
 				const users = await pb.collection('users').getFullList({
 					sort: '-created',
@@ -103,6 +105,48 @@
 			}
 		});
 	});
+
+	async function deleteChatReference(id, type) {
+		console.log("deleting " + type + " with id " + id)
+
+		if (type === 'group') {
+			pb.collection('groups').getOne(id)
+					.then((document) => {
+						const currentList = document.users || []; // if the field does not exist, initialize an empty array
+						const newList = currentList.filter(u => u !== data.user.id); // add the new element to the current list
+						console.log("setting users of group to: " + newList)
+						pb.collection('groups').update(id, {
+							users: newList
+						}).then((result) => {
+							console.log('List field updated:', result.users);
+						}).catch((error) => {
+							console.error('Error updating list field:', error);
+						});
+					}).catch((error) => {
+				console.error('Error getting document:', error);
+			});
+		} else if (type === 'chat') {
+			pb.collection('chats').getOne(id)
+					.then((document) => {
+						const currentList = document.hiddenFrom || []; // if the field does not exist, initialize an empty array
+						const newList = [...currentList, data.user.id]// add the new element to the current list
+						console.log("setting hiddenFrom of chat to: " + newList)
+						pb.collection('chats').update(id, {
+							hiddenFrom: newList
+						}).then((result) => {
+							console.log('List field updated:', result.hiddenFrom);
+						}).catch((error) => {
+							console.error('Error updating list field:', error);
+						});
+					}).catch((error) => {
+				console.error('Error getting document:', error);
+			});
+		}
+
+		triggerRendering ++;
+		active = undefined;
+		active_type = "";
+	}
 
 	async function addChatReferenceIfNotExiting(id, type) {
 		console.log("adding chat reference if not exiting: " + id + " " + type)
@@ -152,7 +196,7 @@
 		}
 		console.log("activating " + type + ": " + id)
 		searchText = ''
-		await new Promise(r => setTimeout(r, 10));
+		await new Promise(r => setTimeout(r, 50));
 		makeActive(id, type)
 	}
 
@@ -257,12 +301,19 @@
 						<span>Groups</span>
 					</li>
 					{#each groups as group (group.id)}
-						<li><button on:click="{makeActive(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}"><div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;"></div>{group.name}</button></li>
+						<li>
+							<button on:click="{makeActive(group.id, 'group')}" style="float:none;width: 300px"  class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">
+								<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
+									<img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;">
+								</div>
+								{group.name}
+							</button>
+						</li>
 					{/each}
 					<li class="menu-title">
 						<span>Chats</span>
 					</li>
-					{#each chats as chat (chat.id)}
+					{#each chats.filter(c => !c.hiddenFrom.includes(data.user.id)) as chat (chat.id)}
 						<li>
 							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
 								<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
@@ -288,10 +339,20 @@
 			<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
 				<div class="dropdown dropdown-end mr-4">
 					{#if active && active_type === 'chat'}
-						<!--					<p class="px-2 normal-case text-2xl">{filterUsersById(chats.filter(chat => chat.id === active))[0].users[0].id)}</p>-->
-						<p class="normal-case text-2xl">{retrieveConversationPartner(active).name}</p>
+						<p class="normal-case text-2xl" style="float: left; margin-right: 30px">{retrieveConversationPartner(active).name}</p>
+						<button on:click={deleteChatReference(active, active_type)} style="float:right"  class="font-normal rounded-box hover:shadow-md" >
+							<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
+								<img src="https://cdn-icons-png.flaticon.com/512/3687/3687412.png" alt="delete" style="width: 100%; height: auto;">
+							</div>
+						</button>
 					{:else if active && active_type === 'group'}
-						<p class="normal-case text-2xl">{retrieveConversationPartner(active).name}</p>
+						<p class="normal-case text-2xl" style="float: left; margin-right: 30px">{retrieveConversationPartner(active).name}</p>
+						<button on:click={deleteChatReference(active, active_type)} style="float:right"  class="font-normal rounded-box" >
+							<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
+								<img src="https://cdn-icons-png.flaticon.com/512/3687/3687412.png" alt="delete" style="width: 100%; height: auto;">
+							</div>
+						</button>
+
 					{:else}
 						<p class="normal-case text-2xl">Select a Chat or create a new one.</p>
 					{/if}
