@@ -63,6 +63,7 @@
 	let unsubscribeMessages;
 	let unsubscribeChats;
 	let unsubscribeGroups;
+	let unsubscribeUsers;
 
 	onMount(async () => {
 		// Subscribe to realtime messages
@@ -93,6 +94,9 @@
 			}
 		});
 		unsubscribeGroups = await pb.collection('groups').subscribe('*', async ({ action, record }) => {
+			if (action === 'create') {
+				allGroups = [...allGroups, record];
+			}
 			if (action === 'update') {
 				if ( record.users.includes(data.user.id) ) {
 					groups = [...groups, record];
@@ -102,6 +106,11 @@
 			}
 			if (action === 'delete') {
 				groups = groups.filter((m) => m.id !== record.id);
+			}
+		});
+		unsubscribeUsers = await pb.collection('groups').subscribe('*', async ({ action, record }) => {
+			if (action === 'create') {
+				allUsers = [...allUsers, record];
 			}
 		});
 	});
@@ -205,6 +214,7 @@
 		unsubscribeMessages?.();
 		unsubscribeChats?.();
 		unsubscribeGroups?.();
+		unsubscribeUsers?.();
 	});
 
 	import { createEventDispatcher } from 'svelte'

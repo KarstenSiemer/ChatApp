@@ -35,7 +35,6 @@ const fetchUsers = async (pb) => {
 	});
 
 	users = structuredClone(usersResultList);
-
 	return users;
 };
 
@@ -57,20 +56,6 @@ const fetchAllGroups = async (pb) => {
 
 	//groups = groupsResultList.items;
 	groups = structuredClone(groupsResultList);
-
-
-	pb.collection('groups').subscribe('*', function (e) {
-		groups = [...groups, e.record];
-	});
-
-	pb.collection('groups').subscribe('*', async ({ action, record }) => {
-		if (action === 'create') {
-			groups = [...groups, record];
-		}
-		if (action === 'delete') {
-			groups = groups.filter((m) => m.id !== record.id);
-		}
-	});
 	return groups;
 };
 
