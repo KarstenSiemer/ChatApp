@@ -5,6 +5,9 @@
 	import { Input } from '$lib/components';
 	import { onMount, onDestroy } from 'svelte';
 	import { pb } from '$lib/pocketbase'
+	import { getImageURL } from '$lib/utils';
+	import MdGroup from 'svelte-icons/md/MdGroup.svelte';
+	import FaTrash from 'svelte-icons/fa/FaTrashAlt.svelte'
 
 	export let data;
 	let active = undefined;
@@ -284,16 +287,11 @@
 					<li>
 						<button on:click="{addChatReferenceIfNotExiting(user.id, 'chat')}" class="font-normal rounded-box hover:shadow-md " id="{user.id}">
 							<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
-								{#if user.avatar}
-									<img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{user.id}/{user.avatar}"
-										 alt="User avatar"
-										 style="width: 100%; height: auto;">
-								{:else}
-									<img src="https://cdn-icons-png.flaticon.com/512/47/47774.png"
-										 alt="User avatar"
-										 style="width: 100%; height: auto;">
-								{/if}
-
+								<img src={user.avatar
+											 ? getImageURL(user.collectionId, user.id, user.avatar)
+											 : `https://ui-avatars.com/api/?name=${user.name}`}
+									 alt="User avatar"
+									 style="width: 100%; height: auto;">
 							</div>{user.name} <span style="color: #808080;"><em>{user.status ? ' - "'  + user.status + '"': ""}</em></span></button>
 					</li>
 				{/each}
@@ -314,7 +312,7 @@
 						<li>
 							<button on:click="{makeActive(group.id, 'group')}" style="float:none;width: 300px"  class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}">
 								<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
-									<img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;">
+									<MdGroup />
 								</div>
 								{group.name}
 							</button>
@@ -326,21 +324,18 @@
 					{#each chats.filter(c => !c.hiddenFrom.includes(data.user.id)) as chat (chat.id)}
 						<li>
 							<button on:click="{makeActive(chat.id, 'chat')}" class="font-normal rounded-box hover:shadow-md {active === chat.id ? 'active' : ''} " id="{chat.id}">
-								<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
-									{#if retrieveConversationPartner(chat.id).avatar}
-										<img src="http://127.0.0.1:8090/api/files/_pb_users_auth_/{retrieveConversationPartner(chat.id).id}/{retrieveConversationPartner(chat.id).avatar}"
-											 alt="User avatar"
+									{#each chat.expand.users.filter(function (el) {
+										return el.id !== data.user.id
+									}) as user (user.id)}
+										<div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+										<img src={user.avatar
+												 ? getImageURL(user.collectionId, user.id, user.avatar)
+												 : `https://ui-avatars.com/api/?name=${user.name}`}
+											 alt="User avatar of {user.name}"
 											 style="width: 100%; height: auto;">
-									{:else}
-										<img src="https://cdn-icons-png.flaticon.com/512/47/47774.png"
-											 alt="User avatar"
-											 style="width: 100%; height: auto;">
-									{/if}
-
-								</div>
-								{chat.expand.users.filter(function (el) {
-									return el.id !== data.user.id
-								})[0].name}
+										</div>
+										{user.name}
+									{/each}
 							</button>
 						</li>
 					{/each}
@@ -348,21 +343,13 @@
 			</div>
 			<div class="bg-base-200 p-8 rounded-box shadow-md flex flex-col flex-grow justify-between overflow-y-scroll">
 				<div class="dropdown dropdown-end mr-4">
-					{#if active && active_type === 'chat'}
-						<p class="normal-case text-2xl" style="float: left; margin-right: 30px">{retrieveConversationPartner(active).name}</p>
-						<button on:click={deleteChatReference(active, active_type)} style="float:right"  class="font-normal rounded-box hover:shadow-md" >
-							<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
-								<img src="https://cdn-icons-png.flaticon.com/512/3687/3687412.png" alt="delete" style="width: 100%; height: auto;">
-							</div>
-						</button>
-					{:else if active && active_type === 'group'}
+					{#if active}
 						<p class="normal-case text-2xl" style="float: left; margin-right: 30px">{retrieveConversationPartner(active).name}</p>
 						<button on:click={deleteChatReference(active, active_type)} style="float:right"  class="font-normal rounded-box" >
 							<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
-								<img src="https://cdn-icons-png.flaticon.com/512/3687/3687412.png" alt="delete" style="width: 100%; height: auto;">
+								<FaTrash />
 							</div>
 						</button>
-
 					{:else}
 						<p class="normal-case text-2xl">Select a Chat or create a new one.</p>
 					{/if}
