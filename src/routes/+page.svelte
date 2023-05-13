@@ -21,8 +21,6 @@
 	$: allUsers = data.allUsers
 	$: allGroups = data.allGroups
 
-	$: console.log(allUsers.map(input => input.avatar))
-
 	$: messages = data.messages?.filter(function (el) {
 		return el.groupID === active || el.chatID === active
 	});
@@ -111,7 +109,7 @@
 				groups = groups.filter((m) => m.id !== record.id);
 			}
 		});
-		unsubscribeUsers = await pb.collection('groups').subscribe('*', async ({ action, record }) => {
+		unsubscribeUsers = await pb.collection('users').subscribe('*', async ({ action, record }) => {
 			if (action === 'create') {
 				allUsers = [...allUsers, record];
 			}
@@ -271,17 +269,27 @@
 </script>
 
 {#if data.user}
-	<div class="overflow-y-scroll w-full">
-		<input bind:value={searchText} type="text" placeholder="Search" class="input w-full" />
-		<br>
-		<hr>
-		<br>
+	<div class="">
+		<input bind:value={searchText} type="text" placeholder="Search" class="input w-full max-w-xs" />
+	</div>
+	<div class="flex flex-col w-full">
+		<div class="divider"></div>
 	</div>
 	<div class="w-full" style="position: relative; z-index: 0">
 		<div style="position: fixed; z-index: 1">
-			<ul class="menu bg-base-100 rounded-box bg-base-200">
+			<ul class="menu rounded-box bg-base-200 shadow-md">
 				{#each filterGroups(searchText) as group (group.id)}
-					<li><button on:click="{addChatReferenceIfNotExiting(group.id, 'group')}" class="font-normal rounded-box hover:shadow-md {active === group.id ? 'active' : ''}" id="{group.id}"><div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;"><img src="https://www.iconpacks.net/icons/1/free-user-group-icon-296-thumb.png" alt="User avatar" style="width: 100%; height: auto;"></div>{group.name}</button></li>
+					<li>
+						<button on:click="{addChatReferenceIfNotExiting(group.id, 'group')}"
+								class="font-normal rounded-box hover:shadow-md
+								{active === group.id ? 'active' : ''}">
+							<div style="width: 35px; height: 35px; border-radius: 50%; overflow: hidden;">
+								<MdGroup />
+							</div>
+							{group.name}
+						</button>
+
+					</li>
 				{/each}
 				{#each filterUsers(searchText) as user (user.id)}
 					<li>
@@ -392,7 +400,6 @@
 			</div>
 		</div>
 	</div>
-
 {:else}
 	<div class="hero flex-grow h-full bg-base-200">
 		<div class="hero-content text-center">
