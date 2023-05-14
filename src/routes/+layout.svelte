@@ -25,9 +25,6 @@
 				</div>
 			{:else}
 				<div class="dropdown dropdown-end mr-4">
-					<a href="/" class="btn btn-primary btn-outline rounded-box">Search Users</a>
-				</div>
-				<div class="dropdown dropdown-end mr-4">
 					<p class="px-2 normal-case text-2xl">{data?.user?.name || 'undefined' }</p>
 				</div>
 				<div class="dropdown dropdown-end">

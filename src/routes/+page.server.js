@@ -1,7 +1,7 @@
 import eventsource from 'eventsource';
 global.EventSource = eventsource;
 
-import { error, invalid } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { sendMessage } from '$lib/schemas';
 import { validateData } from '$lib/utils';
 import { serialize } from 'object-to-formdata';
@@ -16,12 +16,26 @@ export const load = async ({locals}) => {
 	const groups = await fetchGroups(locals.pb, locals.user);
 	const chats = await fetchChats(locals.pb, locals.user);
 	const messages = await fetchMessages(locals.pb, locals.user, groups.map(g => g.id), chats.map(c => c.id));
+	const allUsers = await fetchUsers(locals.pb)
+	const allGroups = await fetchAllGroups(locals.pb)
 
 	return {
 		groups,
 		chats,
-		messages
+		messages,
+		allUsers,
+		allGroups
 	}
+};
+
+const fetchUsers = async (pb) => {
+	let users = [];
+	const usersResultList = await pb.collection('users').getFullList({
+		sort: '-created',
+	});
+
+	users = structuredClone(usersResultList);
+	return users;
 };
 
 const fetchGroups = async (pb, user) => {
@@ -30,6 +44,17 @@ const fetchGroups = async (pb, user) => {
 		sort: '-created',
 		filter: `users ~ "${user.id}"`
 	});
+	groups = structuredClone(groupsResultList);
+	return groups;
+};
+
+const fetchAllGroups = async (pb) => {
+	let groups = [];
+	const groupsResultList = await pb.collection('groups').getFullList({
+		sort: '-created',
+	});
+
+	//groups = groupsResultList.items;
 	groups = structuredClone(groupsResultList);
 	return groups;
 };
@@ -67,7 +92,7 @@ export const actions = {
 		const { formData, errors } = await validateData(body, sendMessage);
 
 		if (errors) {
-			return invalid(400, {
+			return fail(400, {
 				data: formData,
 				errors: errors.fieldErrors
 			});

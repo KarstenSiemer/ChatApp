@@ -1,4 +1,4 @@
-import { error, invalid, redirect } from "@sveltejs/kit";
+import { error, fail, redirect } from "@sveltejs/kit";
 import { validateData } from "$lib/utils";
 import { loginUserSchema } from "$lib/schemas";
 
@@ -10,7 +10,7 @@ export const actions = {
 		);
 
 		if (errors) {
-			return invalid(400, {
+			return fail(400, {
 				data: formData,
 				errors: errors.fieldErrors,
 			});

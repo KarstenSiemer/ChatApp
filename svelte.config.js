@@ -4,9 +4,14 @@ import adapter from '@sveltejs/adapter-auto';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		csrf: {
+			checkOrigin: false,
+		},
 	},
-
+	server: {
+		origin: 'https://chat.unifi.karstensiemer.de'
+	},
 	preprocess: [
 		preprocess({
 			postcss: true

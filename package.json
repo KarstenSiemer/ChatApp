@@ -2,11 +2,12 @@
 	"name": "ChatApp",
 	"version": "0.0.1",
 	"private": true,
+	"homepage": "https://chat.unifi.karstensiemer.de",
 	"scripts": {
-		"backend": "./pocketbase/pocketbase serve",
-		"dev": "vite dev",
+		"backend": "./pocketbase/pocketbase serve --http 0.0.0.0:8090",
+		"dev": "vite --host --debug dev",
 		"build": "vite build",
-		"preview": "vite preview",
+		"preview": "vite preview --host --port 5173",
 		"test": "playwright test",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write ."
